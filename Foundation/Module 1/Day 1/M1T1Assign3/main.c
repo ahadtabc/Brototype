@@ -1,19 +1,23 @@
-1bytes = 8bit
+/*1bytes = 8bit
 
 Data Type       	Memory Size                       Format Specifiers
 int	            	2 or 4 bytes	            	        %d
-float           	4 bytes				                    %f
-double	            8 bytes			                    	%lf
-char            	1 byte			                    	%c
+float           	4 bytes			              %.2f
+double	            8 bytes			       %lf
+char            	1 byte			               %c
+void		empty	
 
+Sample Program:- */
+#include <stdio.h>
+int main()
+{
+    int idNumber = 15; 
+printf("ID No: %d ", idNumber);
 
+    float marks = 75.13;
+    printf("Mark: %.2f ”,marks);
 
-scanf("%d", &value);
-
-%d           Format Specifier
-
-&           (Address of Operator) Finds the Memory Location of the variable.
-
-value       variable
-
-
+    char grade = 'C'; 		/* or  use ASCI Values  char grade = 67;        */
+   printf("Grade: %c  ", grade);
+    return 0;
+}	
