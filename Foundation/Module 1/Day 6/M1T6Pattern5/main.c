@@ -7,22 +7,23 @@ Welcome to GDB Online.
 
 *******************************************************************************/
 #include <stdio.h>
-
 int main()
 {
-    int n=9;
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=n;j++){
-            if(j+i==1+n || j==i){
-                int half = (i <= 5) ? i : (n + 1 - i);
-                printf("%d", half);
-            }else{
-                printf("  ");
-            }
+    int rows=11;
+    for(int i=1;i<=rows;i++){
+        int stars;
+       if(i==1||i==2){
+            stars=10;
+        }else if (i==6||i==7){
+        stars=8;
+        }else{
+        stars=2;
+        }
+        for(int k=1;k<=stars;k++){
+            printf("*");
         }
            printf("\n");
     }
- 
 
     return 0;
 }
