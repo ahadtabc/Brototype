@@ -1,15 +1,9 @@
 public class Main {
-    public static void main(String[] args) {
-        // Creating object of User class
-        User user1 = new User(
-            "Abdul Ahad",
-            25,
-            "Kerala",
-            "ahadtabc@gmail.com",
-            "9074243208"
-        );
-
-        // Calling method
-        user1.displayDetails();
-    }
+	
+	public static void main(String[] args) {
+		User uc=new User(
+				"Abdul Ahad",29,"Malappuram","ahadtabc@gmail.com",
+				9074243208L);
+		uc.displayDetails();
+	}
 }
