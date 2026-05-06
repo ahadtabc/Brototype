@@ -1,8 +1,7 @@
 
 public class Product {
-    String name;
+    String name,category;
     double price;
-    String category;
 
     Product(String name, double price, String category) {
         this.name = name;
