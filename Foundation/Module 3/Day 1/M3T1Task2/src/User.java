@@ -1,19 +1,17 @@
 
 public class User {
     // Properties
-    String name;
+    String name,place,email;
     int age;
-    String place;
-    String email;
     long phoneNumber;
 
     // Default Constructor
     User() {
-        name = "Unknown";
-        age = 0;
-        place = "Not Available";
-        email = "Not Available";
-        phoneNumber = 0;
+        name = "Elon Musk";
+        age = 55;
+        place = "California";
+        email = "elon@tesla.com";
+        phoneNumber = 9847573839L;
     }
 
     // Parameterized Constructor
