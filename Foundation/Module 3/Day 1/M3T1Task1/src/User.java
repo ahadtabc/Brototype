@@ -1,9 +1,7 @@
 
 public class User {
-	String name;
+	String name,place,email;
 	int age;
-	String place;
-	String email;
 	long phoneNumber;
 	
 	//name, age, place, email, phoneNumber 
