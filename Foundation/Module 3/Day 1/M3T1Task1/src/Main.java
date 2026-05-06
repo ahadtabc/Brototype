@@ -8,6 +8,7 @@
 // 	}
 // }
 
+
 import java.util.Scanner;
 
 public class Main {
@@ -16,28 +17,27 @@ public class Main {
 		
 		Scanner sc= new Scanner (System.in);
 		
-		System.out.println("Enter the Name :");
+		System.out.print("Enter the Name: ");
 		String name=sc.nextLine();
 		
-		System.out.println("Enter the Age :");
+		System.out.print("Enter the Age: ");
 		int age=sc.nextInt();
-		sc.nextLine();
+				sc.nextLine();
 		
-		System.out.println("Enter the Place :");
+		System.out.print("Enter the Place: ");
 		String place=sc.nextLine();
 		
-		System.out.println("Enter the Email :");
+		System.out.print("Enter the Email: ");
 		String email=sc.nextLine();
 		
-		System.out.println("Enter the Phone Number :");
+		System.out.print("Enter the Phone Number: ");
 		long phoneNumber=sc.nextLong();
-		
-		
+
 		User user1=new User(name, age, place, email, phoneNumber);
 				
 		System.out.println("----------------------");
 		user1.displayDetails();
-		sc.close();
+		
 	}
 
 }
