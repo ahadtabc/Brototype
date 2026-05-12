@@ -2,13 +2,11 @@
 
 public class Manager extends Employee{
 
-	
-	void calculateSalary() {
 		
-		//method Override using super
+	@Override
+	void calculateSalary() {	
+		// using super and call Employee's own method
 		super.calculateSalary();
-
-		
 		System.out.println("The Manager Salary is 250000");
 		
 
