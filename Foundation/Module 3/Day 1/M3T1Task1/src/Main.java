@@ -1,14 +1,3 @@
-// public class Main {
-	
-// 	public static void main(String[] args) {
-// 		User uc=new User(
-// 				"Abdul Ahad",29,"Malappuram","ahadtabc@gmail.com",
-// 				9074243208L);
-// 		uc.displayDetails();
-// 	}
-// }
-
-
 import java.util.Scanner;
 
 public class Main {
@@ -37,6 +26,11 @@ public class Main {
 				
 		System.out.println("----------------------");
 		user1.displayDetails();
+
+		User user2=new User("Elon",57,"California","elon@tesla.com",123456789L);
+		System.out.println("----------------------");
+		user2.displayDetails();
+	}
 		
 	}
 
