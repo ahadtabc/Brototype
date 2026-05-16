@@ -1,0 +1,51 @@
+/******************************************************************************
+
+Assignment 2.17
+Write a C program to find all prime numbers in 
+an array and replace them with 0, then find the sum of the array. 
+Array: {5, 8, 13, 9, 4, 17}.
+
+The OG Array is: 5 8 13 9 4 17 
+Updated 0 for Prime: 0 8 0 9 4 0 
+The Final Sum is 21.00 
+*******************************************************************************/
+#include <stdio.h>
+
+int main()
+{
+    int arr[]={5, 8, 13, 9, 4, 17};
+    int n=sizeof(arr)/sizeof(arr[0]);
+    int i,j,isPrime;
+    float sum=0;
+    
+    
+    printf("The OG Array is: ");
+    for(i=0; i<n; i++)
+    printf("%d ",arr[i]);
+
+    for(i=0; i<n; i++){
+        isPrime=1;
+    if(arr[i]<2){
+        isPrime=0;
+    }else{
+        for(j=2; j<=arr[i]/2; j++){
+            if(arr[i]%j==0){
+                isPrime=0;
+                break;
+            }
+        }
+    }
+    if(isPrime==1){
+        arr[i]=0;
+    }
+    }
+    
+    printf("\nUpdated 0 for Prime: ");
+    for(i=0; i<n; i++){
+    sum+=arr[i];
+    printf("%d ",arr[i]);
+    }
+    printf("\nThe Final Sum is %.2f ",sum);
+    
+    return 0;
+}
