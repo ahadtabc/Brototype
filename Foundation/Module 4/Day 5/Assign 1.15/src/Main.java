@@ -2,9 +2,9 @@
 					  Animal
      (Multilevel)       |			(Hierarchical) 
                -------------------------
-               |              |		  |
-              Dog            Cow	      Hen
-        		   | 
+               |              |		   |
+              Dog            Cow	  Hen
+        	   | 
        		  Cat 
        
        */
