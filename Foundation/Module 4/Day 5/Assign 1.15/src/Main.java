@@ -1,4 +1,4 @@
-/*Assginment 1.15
+/*Assignment 1.15
 					  Animal
      (Multilevel)       |			(Hierarchical) 
                -------------------------
