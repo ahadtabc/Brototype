@@ -1,4 +1,13 @@
-
+/*Assginment 1.15
+					  Animal
+     (Multilevel)       |			(Hierarchical) 
+               -------------------------
+               |              |		  |
+              Dog            Cow	      Hen
+        		   | 
+       		  Cat 
+       
+       */
 public class Main {
 	public static void main(String[] args) {
 		
