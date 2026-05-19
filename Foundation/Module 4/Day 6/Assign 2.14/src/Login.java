@@ -1,0 +1,5 @@
+
+interface Login {
+	
+	void onlineLogin();
+}
