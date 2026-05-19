@@ -1,4 +1,6 @@
-
+/*Assignment 2.20
+Create custom exceptions & throw them using throw keyword.
+*/
 public class Main {
  public static void main(String[] args) {
 	
