@@ -1,0 +1,5 @@
+
+interface Camera {
+
+		void capturePhoto();
+}
