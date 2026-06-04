@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Document</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+</head>
+
+<body>
+    <div class="navbar">
+        <h1 class="title"> GreenLeaf</h1>
+        <ul class="list">
+            <li>Home</li>
+            <li>Canvas</li>
+            <li>Fruits</li>
+            <li>Vegetable</li>
+            <li>Frozen</li>
+        </ul>
+    </div>
+    <div class="home-screen">
+        <div class="box1">
+            <h4>Starting ₹49 | Deals on home essentials</h4>
+            <div class="imggroup">
+
+                <div class="imageem">
+                    <img src="WIPES.jpg" alt="">
+                    <span>Cleaning</span>
+                </div>
+
+                <div class="imageem"><img src="SHOWER.jpg" alt="">
+                    <span>shower</span>
+                </div>
+
+                <div class="imageem"><img src="TOOL.jpg" alt="">
+                    <span>tool</span>
+                </div>
+
+                <div class="imageem"><img src="WALL.jpg" alt="">
+                    <span>wall</span>
+                </div>
+
+            </div>
+        </div>
+        <div class="home-screen2">
+        <div class="box">
+            <h4>Starting ₹79 | Deals on home essentials</h4>
+            <div class="imggroup">
+
+                <div class="imageem">
+                    <img src="WIPES.jpg" alt="">
+                    <span>Cleaning</span>
+                </div>
+
+                <div class="imageem"><img src="SHOWER.jpg" alt="">
+                    <span>shower</span>
+                </div>
+
+                <div class="imageem"><img src="TOOL.jpg" alt="">
+                    <span>tool</span>
+                </div>
+
+                <div class="imageem"><img src="WALL.jpg" alt="">
+                    <span>wall</span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+</body>
+
+</html>
+
+
+
+
+
+* {
+    margin: 0;
+}
+
+.navbar {
+
+    background-color: hwb(70 2% 18%);
+    height: 75px;
+    width: 100%x;
+    display: flex;
+}
+
+.title {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-style: italic;
+
+}
+
+.list {
+
+
+    list-style: none;
+}
+
+.home-screen,.home-screen2{
+    height: 420px;
+    width: 400px;
+    background-color: rgb(185, 197, 22);
+    border: 5px solid black;
+    display: flex;
+}
+
+.imageem {
+    display: flex;
+    padding: 5px;
+    flex-direction: column;
+}
+
+.imggroup {
+    width: 400px;
+    display: flex;
+    flex-wrap: wrap;
+
+}
