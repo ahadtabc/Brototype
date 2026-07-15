@@ -1,0 +1,41 @@
+.btn-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+
+}
+
+#increbtn,
+#decrebtn,
+#resetbtn {
+    background-color: rgb(6, 6, 118);
+    color: beige;
+    font-style: italic;
+    font-size: larger;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+}
+
+#increbtn:hover,
+#decrebtn:hover,
+#resetbtn:hover {
+    background-color: aqua;
+    color: black;
+}
+
+.display-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 150px
+}
+
+#counterDisplay {
+    font-size: 100px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+}
