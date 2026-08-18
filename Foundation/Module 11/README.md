@@ -1,498 +1,293 @@
-# Full Domain — Complete Project Summary
+# 📦 Full Domain — Project Summary
 
-> A Node.js + Express + MongoDB application built with MVC architecture.
-> This document explains every file, every concept, and the correct creation order.
+## 📌 What Is This Project?
 
----
+**Full Domain** is a full-stack web application built with **Node.js**, **Express**, **MongoDB**, and **Handlebars (HBS)** as the templating engine.
 
-## Table of Contents
-1. [What is MVC?](#1-what-is-mvc)
-2. [Project Structure](#2-project-structure)
-3. [Technology Stack](#3-technology-stack)
-4. [Creation Stages (in order)](#4-creation-stages-in-order)
-5. [File-by-File Explanation](#5-file-by-file-explanation)
-6. [Complete Request-Response Flow](#6-complete-request-response-flow)
-7. [Session & Authentication Flow](#7-session--authentication-flow)
-8. [Key Concepts Explained](#8-key-concepts-explained)
+It is a **User Management System** that has two separate panels:
+- **User Panel** — for normal users to register, log in, view their dashboard, and log out.
+- **Admin Panel** — for admins to log in, view all users, add new users, edit existing users, delete users, and log out.
 
----
-
-## 1. What is MVC?
-
-**MVC** stands for **Model – View – Controller**. Each layer has exactly one job.
-
-| Layer | Job | Files in this project |
-|---|---|---|
-| **Model** | Defines data structure, talks to the database | `models/userModel.js`, `models/adminModel.js` |
-| **View** | Renders HTML to the browser using dynamic data | `views/user/*.hbs`, `views/admin/*.hbs` |
-| **Controller** | Receives request, calls Service, sends response | `controllers/userController.js`, `controllers/adminController.js` |
-
-**Extra layers** used here:
-
-| Layer | Job | Files |
-|---|---|---|
-| **Service** | Isolates all DB queries; keeps Controllers thin | `services/userService.js`, `services/adminService.js` |
-| **Route** | Maps URL + HTTP method → Controller method | `routes/userRoute.js`, `routes/adminRoute.js` |
-| **Middleware** | Runs before Controllers to guard or transform requests | `middleware/userAuth.js`, `middleware/adminAuth.js` |
-| **Config** | Infrastructure setup (DB connection) | `config/db.js` |
+The project follows the **MVC (Model-View-Controller)** architecture, which separates concerns cleanly into:
+- **Model** → MongoDB schemas (data structure)
+- **View** → Handlebars templates (HTML pages)
+- **Controller** → JavaScript logic (business rules)
+- **Service** → Database query functions (data access layer)
+- **Middleware** → Authentication guards (session checks)
+- **Routes** → URL path definitions
 
 ---
 
-## 2. Project Structure
+## 🏗️ Project Creation Stages (Step by Step)
+
+---
+
+### ✅ Stage 1 — Project Initialization
+
+**Goal:** Set up the project folder, install dependencies, and create the entry point.
+
+**Steps:**
+1. Create a new project folder: `Full Domain/`
+2. Run `npm init` inside the folder to generate `package.json`
+3. Install all required npm packages:
+   ```bash
+   npm install express mongoose hbs express-session bcrypt dotenv nocache
+   npm install --save-dev nodemon
+   ```
+4. Create the main entry file `app.js`
+5. Create a `.env` file to store secrets:
+   ```
+   MONGO_URI=your_mongodb_connection_string
+   PORT=3001
+   SESSION_SECRET=your_secret_key
+   ```
+6. Configure `package.json` to start the app with `nodemon`:
+   ```json
+   "scripts": {
+     "start": "nodemon app.js"
+   }
+   ```
+
+---
+
+### ✅ Stage 2 — Database Connection (`config/db.js`)
+
+**Goal:** Connect the app to MongoDB using Mongoose.
+
+**Steps:**
+1. Create the folder `config/`
+2. Create `config/db.js`
+3. Write a function `connectDB()` that connects to MongoDB using the URI from `.env`
+4. Handle connection errors and exit the process if connection fails
+5. Export `connectDB` so `app.js` can call it on startup
+
+---
+
+### ✅ Stage 3 — Database Models (`models/`)
+
+**Goal:** Define the shape (schema) of the data stored in MongoDB.
+
+**Steps:**
+1. Create the folder `models/`
+2. Create `models/userModel.js`:
+   - Define a schema with fields: `name`, `email`, `password`, `role` (defaults to `"user"`)
+   - Export the `User` model
+3. Create `models/adminModel.js`:
+   - Define a schema with fields: `name`, `email`, `password`
+   - Export the `Admin` model
+
+---
+
+### ✅ Stage 4 — Service Layer (`services/`)
+
+**Goal:** Create reusable database query functions to keep controllers clean.
+
+**Steps:**
+1. Create the folder `services/`
+2. Create `services/userService.js`:
+   - `findUserByEmail(email)` — finds a user by email
+   - `findUserById(id)` — finds a user by ID
+   - `createUser(userData)` — saves a new user to the database
+3. Create `services/adminService.js`:
+   - `findAdminByEmail(email)` — finds an admin by email
+   - `getPaginatedUsers(searchQuery, skip, limit)` — returns users with pagination and search
+   - `getTotalUsersCount(searchQuery)` — counts total users for pagination
+   - `findUserByEmail(email)` — checks if email already exists
+   - `createUser(userData)` — admin creates a new user
+   - `findUserById(id)` — fetches a single user for editing
+   - `updateUser(id, updateData)` — updates user fields
+   - `deleteUser(id)` — permanently deletes a user
+
+---
+
+### ✅ Stage 5 — Middleware (Authentication Guards) (`middleware/`)
+
+**Goal:** Protect routes so that only logged-in users/admins can access protected pages.
+
+**Steps:**
+1. Create the folder `middleware/`
+2. Create `middleware/userAuth.js`:
+   - Check if `req.session.userLoggedIn` exists
+   - If not, redirect to `/login`
+   - If session exists but user is not found in DB, destroy session and redirect
+   - If valid, call `next()` to allow the request to continue
+3. Create `middleware/adminAuth.js`:
+   - Check if `req.session.adminLoggedIn` exists
+   - If not, redirect to `/admin`
+   - If session exists but admin is not found in DB, clear session and redirect
+   - If valid, call `next()` to allow the request to continue
+
+---
+
+### ✅ Stage 6 — Controllers (`controllers/`)
+
+**Goal:** Write the business logic — what happens when a URL is visited or a form is submitted.
+
+**Steps:**
+1. Create the folder `controllers/`
+2. Create `controllers/userController.js`:
+   - `getLogin` — shows the login page (redirects if already logged in)
+   - `postLogin` — verifies email + password, saves session, redirects to dashboard
+   - `getDashboard` — fetches user from DB and renders the home/dashboard view
+   - `logout` — destroys session, clears cookie, redirects to login
+   - `getSignup` — shows signup form (redirects if already logged in)
+   - `postSignup` — validates all fields (name, email, password, confirmPassword), hashes password, creates user in DB, redirects to login
+3. Create `controllers/adminController.js`:
+   - `getLogin` — shows admin login page
+   - `postLogin` — authenticates admin with bcrypt, saves session
+   - `getDashboard` — redirects to manage users
+   - `getUsers` — fetches paginated + searchable user list, renders manage users page
+   - `getAddUser` — renders the add user form
+   - `postAddUser` — validates all inputs, hashes password, creates user in DB
+   - `getEditUser` — fetches user by ID, renders edit form pre-filled
+   - `postEditUser` — validates inputs, updates user fields (hashes password only if provided)
+   - `deleteUser` — permanently removes a user by ID
+   - `logout` — destroys admin session, clears cookie, redirects
+
+---
+
+### ✅ Stage 7 — Routes (`routes/`)
+
+**Goal:** Map URL paths to the correct controller functions.
+
+**Steps:**
+1. Create the folder `routes/`
+2. Create `routes/userRoute.js`:
+   - `GET /` → redirects to `/login`
+   - `GET /login` → `userController.getLogin`
+   - `POST /login` → `userController.postLogin`
+   - `GET /signup` → `userController.getSignup`
+   - `POST /signup` → `userController.postSignup`
+   - `GET /user/userDashboard` → **protected by `userAuth`** → `userController.getDashboard`
+   - `GET /logout` → `userController.logout`
+3. Create `routes/adminRoute.js`:
+   - `GET /` → `adminController.getLogin`
+   - `POST /login` → `adminController.postLogin`
+   - `GET /adminDashboard` → **protected** → `adminController.getDashboard`
+   - `GET /adminUsers` → **protected** → `adminController.getUsers`
+   - `GET /addUser` → **protected** → `adminController.getAddUser`
+   - `POST /addUser` → **protected** → `adminController.postAddUser`
+   - `GET /editUser/:id` → **protected** → `adminController.getEditUser`
+   - `POST /editUser/:id` → **protected** → `adminController.postEditUser`
+   - `GET /deleteUser/:id` → **protected** → `adminController.deleteUser`
+   - `GET /logout` → `adminController.logout`
+
+---
+
+### ✅ Stage 8 — Views (`views/`)
+
+**Goal:** Create the HTML pages that users see in the browser, using Handlebars templating.
+
+**Steps:**
+1. Create the folder `views/` with sub-folders `views/user/` and `views/admin/`
+2. Create user-facing views:
+   - `views/user/login.hbs` — login form with email and password
+   - `views/user/signup.hbs` — signup form with name, email, password, confirm password
+   - `views/user/home.hbs` — user dashboard showing their name
+3. Create admin-facing views:
+   - `views/admin/login.hbs` — admin login form
+   - `views/admin/manageUsers.hbs` — table of all users with search, pagination, edit/delete buttons
+   - `views/admin/addUser.hbs` — form to create a new user
+   - `views/admin/editUser.hbs` — pre-filled form to update a user's details
+
+---
+
+### ✅ Stage 9 — Main Entry Point (`app.js`)
+
+**Goal:** Wire everything together — middleware, sessions, routes, and start the server.
+
+**Steps:**
+1. Load environment variables with `dotenv`
+2. Create an Express app
+3. Connect to MongoDB by calling `connectDB()`
+4. Serve static files from the `public/` folder
+5. Set Handlebars as the view engine
+6. Add body parsers for form submissions (URL-encoded and JSON)
+7. Configure `express-session` with a secret, cookie max-age of 1 hour
+8. Add `nocache()` middleware to prevent browser back-button caching
+9. Add a manual cache-control header middleware for extra security
+10. Mount user routes at `/`
+11. Mount admin routes at `/admin`
+12. Add a global middleware to pass flash-style session messages to views
+13. Start the server and listen on the configured port
+
+---
+
+### ✅ Stage 10 — Admin Seeder Script (`admin/createAdmin.js`)
+
+**Goal:** Create the very first admin account in the database from the command line.
+
+**Steps:**
+1. Create the folder `admin/`
+2. Create `admin/createAdmin.js`
+3. Accept email and password as command-line arguments (with defaults)
+4. Connect to MongoDB, check if admin already exists, hash the password, and save
+5. Run it once with: `node admin/createAdmin.js admin@mail.com MyPassword123`
+
+---
+
+## 🗂️ Project Folder Structure
 
 ```
 Full Domain/
-├── app.js                    ← Entry point. Starts the server.
-├── .env                      ← Secret config (DB URI, session secret, port)
-├── package.json              ← npm metadata and dependency list
-│
+├── admin/
+│   └── createAdmin.js       ← One-time script to seed admin account
 ├── config/
-│   └── db.js                 ← Connects to MongoDB using Mongoose
-│
-├── models/
-│   ├── userModel.js          ← Schema for "users" collection
-│   └── adminModel.js         ← Schema for "admins" collection
-│
-├── services/
-│   ├── userService.js        ← User DB queries (findByEmail, findById, create)
-│   └── adminService.js       ← Admin DB queries (CRUD + pagination + search)
-│
-├── middleware/
-│   ├── userAuth.js           ← Protects user-only routes
-│   └── adminAuth.js          ← Protects admin-only routes
-│
-├── routes/
-│   ├── userRoute.js          ← User-facing URL routes
-│   └── adminRoute.js         ← Admin-panel URL routes
-│
+│   └── db.js                ← MongoDB connection setup
 ├── controllers/
-│   ├── userController.js     ← User login, signup, dashboard, logout
-│   └── adminController.js    ← Admin login, manage/add/edit/delete users
-│
+│   ├── userController.js    ← User login, signup, dashboard, logout logic
+│   └── adminController.js   ← Admin CRUD user management logic
+├── middleware/
+│   ├── userAuth.js          ← Protects user routes (checks session)
+│   └── adminAuth.js         ← Protects admin routes (checks session)
+├── models/
+│   ├── userModel.js         ← MongoDB schema for users
+│   └── adminModel.js        ← MongoDB schema for admins
+├── routes/
+│   ├── userRoute.js         ← URL paths for user panel
+│   └── adminRoute.js        ← URL paths for admin panel
+├── services/
+│   ├── userService.js       ← DB query helpers for user data
+│   └── adminService.js      ← DB query helpers for admin operations
 ├── views/
 │   ├── user/
-│   │   ├── login.hbs         ← User login form
-│   │   ├── signup.hbs        ← User registration form
-│   │   └── home.hbs          ← User dashboard (protected)
+│   │   ├── login.hbs        ← User login page
+│   │   ├── signup.hbs       ← User signup page
+│   │   └── home.hbs         ← User dashboard
 │   └── admin/
-│       ├── login.hbs         ← Admin login form
-│       ├── manageUsers.hbs   ← User list with search + pagination
-│       ├── addUser.hbs       ← Create new user form
-│       └── editUser.hbs      ← Update existing user form
-│
-└── admin/
-    └── createAdmin.js        ← CLI script to seed the first admin account
+│       ├── login.hbs        ← Admin login page
+│       ├── manageUsers.hbs  ← User list with search & pagination
+│       ├── addUser.hbs      ← Add new user form
+│       └── editUser.hbs     ← Edit user form
+├── .env                     ← Secret environment variables
+├── app.js                   ← Main entry point
+└── package.json             ← Project config and dependencies
 ```
 
 ---
 
-## 3. Technology Stack
+## 🔐 Security Features Implemented
 
-| Package | Version | Purpose |
-|---|---|---|
-| `express` | ^5.2.1 | Web framework — routing, middleware, HTTP |
-| `hbs` | ^4.2.1 | Handlebars view engine for `.hbs` templates |
-| `mongoose` | ^9.9.2 | ODM for MongoDB — schemas, models, queries |
-| `express-session` | ^1.19.0 | Server-side sessions for auth state |
-| `bcrypt` | ^6.0.0 | Password hashing — stores and verifies passwords securely |
-| `dotenv` | ^17.4.2 | Loads `.env` into `process.env` |
-| `nocache` | ^4.0.0 | Sets cache-control headers to prevent back-button exploits |
-| `nodemon` | ^3.1.14 | Dev tool — auto-restarts server on file changes |
-
----
-
-## 4. Creation Stages (in order)
-
-### Stage 1 — Project Setup
-```bash
-npm init -y
-npm install express hbs mongoose express-session bcrypt dotenv nocache
-npm install -D nodemon
-```
-- Create `.env` with `MONGO_URI`, `PORT`, `SESSION_SECRET`
-- Update `package.json` start script to `"nodemon app.js"`
-
-**Why first?** Every other file depends on npm packages being installed.
-
----
-
-### Stage 2 — Database Config (`config/db.js`)
-- Import `mongoose`
-- Write `connectDB()` async function using `mongoose.connect(process.env.MONGO_URI)`
-- On failure: log the error and call `process.exit(1)` to stop the server
-- Export the function
-
-**Why second?** Models cannot query MongoDB without this connection being established first.
-
----
-
-### Stage 3 — Models (`models/`)
-
-**`userModel.js`**
-- `userSchema` fields: `name` (String, required, trim), `email` (String, required, unique, trim), `password` (String, required), `role` (String, default: "user")
-- `mongoose.model("User", userSchema)` → creates the `users` collection
-- Export `User`
-
-**`adminModel.js`**
-- `adminSchema` fields: `name`, `email` (unique), `password`
-- `mongoose.model("Admin", adminSchema)` → creates the `admins` collection
-- Export `Admin`
-
-**Why third?** Services import Models. Models must exist before Services can use them.
-
----
-
-### Stage 4 — Services (`services/`)
-
-**`userService.js`** — Class `UserService`:
-- `findUserByEmail(email)` → `User.findOne({ email })`
-- `findUserById(id)` → `User.findById(id)`
-- `createUser(userData)` → `new User(data).save()`
-- Export `new UserService()` singleton
-
-**`adminService.js`** — Class `AdminService`:
-- `findAdminByEmail(email)` → queries "admins" collection
-- `getPaginatedUsers(search, skip, limit)` → paginated + filtered query with `$regex` + `$ne`
-- `getTotalUsersCount(search)` → count for pagination math
-- `findUserByEmail`, `createUser`, `findUserById`, `updateUser`, `deleteUser` → "users" collection
-- Export `new AdminService()` singleton
-
-**Why fourth?** Controllers call Services. Services must exist before Controllers.
-
----
-
-### Stage 5 — Middleware (`middleware/`)
-
-**`userAuth.js`**:
-1. Check `req.session.userLoggedIn` → redirect to `/login` if missing
-2. Query DB: `User.findById(...)` → destroy session if user deleted
-3. Call `next()` if both checks pass
-
-**`adminAuth.js`**:
-1. Check `req.session.adminLoggedIn` → redirect to `/admin` if missing
-2. Query DB: `Admin.findById(...)` → clear session if admin deleted
-3. Call `next()` if both checks pass
-
-**Why fifth?** Routes reference middleware. Middleware must exist before routes.
-
----
-
-### Stage 6 — Controllers (`controllers/`)
-
-**`userController.js`** — Class `UserController`:
-- `getLogin` — renders login form, reads flash flags from session
-- `postLogin` — calls `userService.findUserByEmail()`, uses `bcrypt.compare()`, sets `req.session.userLoggedIn`
-- `getDashboard` — calls `userService.findUserById()`, renders `user/home`
-- `logout` — nulls session, calls `req.session.destroy()`, clears cookie
-- `getSignup` — renders signup form
-- `postSignup` — validates passwords match, checks duplicate email, hashes with `bcrypt.hash()`, calls `userService.createUser()`
-
-**`adminController.js`** — Class `AdminController`:
-- `getLogin` / `postLogin` — admin auth against "admins" collection
-- `getDashboard` — redirects to user list
-- `getUsers` — pagination math (skip, limit, totalPages), calls `adminService`, maps rows with index numbers
-- `getAddUser` / `postAddUser` — create user with role forced to `"user"`
-- `getEditUser` / `postEditUser` — pre-fill form, email uniqueness check, optional password re-hash
-- `deleteUser` — `adminService.deleteUser(req.params.id)`
-- `logout` — destroy admin session, clear cookie
-
-**Why sixth?** Routes call Controller methods. Controllers must exist before routes.
-
----
-
-### Stage 7 — Routes (`routes/`)
-
-**`userRoute.js`** — mounted at `/` in `app.js`:
-
-| Method | URL | Middleware | Controller |
-|---|---|---|---|
-| GET | `/` | — | redirect to `/login` |
-| GET | `/login` | — | `userController.getLogin` |
-| POST | `/login` | — | `userController.postLogin` |
-| GET | `/signup` | — | `userController.getSignup` |
-| POST | `/signup` | — | `userController.postSignup` |
-| GET | `/user/userDashboard` | `userAuth` | `userController.getDashboard` |
-| GET | `/logout` | — | `userController.logout` |
-
-**`adminRoute.js`** — mounted at `/admin` in `app.js`:
-
-| Method | URL | Middleware | Controller |
-|---|---|---|---|
-| GET | `/` | — | `adminController.getLogin` |
-| POST | `/login` | — | `adminController.postLogin` |
-| GET | `/adminDashboard` | `adminAuth` | `adminController.getDashboard` |
-| GET | `/adminUsers` | `adminAuth` | `adminController.getUsers` |
-| GET | `/addUser` | `adminAuth` | `adminController.getAddUser` |
-| POST | `/addUser` | `adminAuth` | `adminController.postAddUser` |
-| GET | `/editUser/:id` | `adminAuth` | `adminController.getEditUser` |
-| POST | `/editUser/:id` | `adminAuth` | `adminController.postEditUser` |
-| GET | `/deleteUser/:id` | `adminAuth` | `adminController.deleteUser` |
-| GET | `/logout` | — | `adminController.logout` |
-
-**Why seventh?** Routes depend on Controllers AND middleware. Both must exist first.
-
----
-
-### Stage 8 — Views (`views/`)
-
-All `.hbs` templates — rendered by `res.render("path/file", { data })` in Controllers.
-
-- `user/login.hbs` — login form, `{{#if msg}}` feedback
-- `user/signup.hbs` — signup form, `{{#if error}}` validation error
-- `user/home.hbs` — dashboard with `{{user.name}}`, back-button script
-- `admin/login.hbs` — admin login, `{{msg}}` error display
-- `admin/addUser.hbs` — create user form
-- `admin/editUser.hbs` — pre-filled edit form using `{{user.name}}`, `{{user.email}}`, `{{user._id}}`
-- `admin/manageUsers.hbs` — `{{#each users}}` table, flash messages, search form, pagination
-
-**Why eighth?** Views don't depend on Node.js files. They're pure HTML + Handlebars.
-
----
-
-### Stage 9 — Entry Point (`app.js`)
-
-Wires everything together in this order:
-1. `require("dotenv").config()` — load `.env`
-2. Import all packages and route files
-3. `connectDB()` — open DB connection
-4. Middleware stack: `static`, `hbs`, `urlencoded`, `json`, `session`, `nocache`, cache headers
-5. Mount routes: `app.use("/", userRoute)`, `app.use("/admin", adminRoute)`
-6. Flash message middleware (copies session flags → `res.locals`)
-7. `app.listen(PORT)` — start HTTP server
-
-**Why last?** Imports and uses everything. All other files must exist first.
-
----
-
-### Stage 10 — Admin Seed Script (`admin/createAdmin.js`)
-
-One-time CLI script:
-```bash
-node admin/createAdmin.js admin@example.com password123
-```
-- Reads email/password from `process.argv[2]` and `process.argv[3]`
-- Connects to MongoDB directly (standalone — not via `app.js`)
-- Checks if admin already exists → skips if so
-- Hashes password with `bcrypt.hash(password, 10)`
-- Calls `Admin.create({ name: "Admin", email, password: hashedPassword })`
-
-**Why last?** Needs the `Admin` model and `.env`. Run once after the app is set up.
-
----
-
-## 5. File-by-File Explanation
-
-### `.env`
-```
-MONGO_URI=mongodb://127.0.0.1:27017/userDB
-PORT=3001
-SESSION_SECRET=CIPHERCODE
-```
-- `MONGO_URI` — `127.0.0.1:27017` is localhost MongoDB. `userDB` is the database name (auto-created).
-- `PORT` — Express listens on this port.
-- `SESSION_SECRET` — Signs the session cookie. Change to a long random string in production.
-
----
-
-### `config/db.js`
-- Opens the Mongoose connection to MongoDB using `process.env.MONGO_URI`
-- On failure: logs `error.message` and calls `process.exit(1)` (stops the server immediately)
-- Exported as a function called once in `app.js`
-
----
-
-### `models/userModel.js`
-- **Collection**: `users`
-- **Fields**: `name` (required, trim), `email` (required, unique, trim), `password` (required — bcrypt hash), `role` (default: `"user"`)
-- The `role` field allows `adminService` to exclude admin accounts: `{ role: { $ne: "admin" } }`
-
----
-
-### `models/adminModel.js`
-- **Collection**: `admins`
-- **Fields**: `name`, `email` (unique), `password`
-- Separate from users — prevents accidental cross-contamination between user and admin data
-
----
-
-### `services/userService.js`
-- `findUserByEmail` — used by login and signup validation
-- `findUserById` — used by dashboard to load user's name
-- `createUser` — used by signup to save the new account
-
----
-
-### `services/adminService.js`
-- `findAdminByEmail` — admin login validation (queries "admins", not "users")
-- `getPaginatedUsers(search, skip, limit)` — uses `$regex` (partial match), `$options: "i"` (case-insensitive), `$ne` (not equal), `.skip()` and `.limit()` for pagination
-- `getTotalUsersCount` — same query but returns a number (`countDocuments`)
-- Full CRUD: `findUserByEmail`, `createUser`, `findUserById`, `updateUser` (`findByIdAndUpdate`), `deleteUser` (`findByIdAndDelete`)
-
----
-
-### `middleware/userAuth.js`
-- **Protects**: `GET /user/userDashboard`
-- **Check 1**: `req.session.userLoggedIn` must exist
-- **Check 2**: `User.findById(req.session.userLoggedIn)` must return a document
-- **On fail**: redirect to `/login` or destroy session
-- **On pass**: call `next()`
-
----
-
-### `middleware/adminAuth.js`
-- **Protects**: all admin routes except `/` and `/login`
-- **Check 1**: `req.session.adminLoggedIn` must exist
-- **Check 2**: `Admin.findById(req.session.adminLoggedIn)` must return a document
-- **On fail**: redirect to `/admin`
-- **On pass**: call `next()`
-
----
-
-### `controllers/userController.js`
-**Session keys used**:
-- `req.session.userLoggedIn` — stores user `_id` after login
-- `req.session.passwordWrong` — flag to show error message on login page
-- `req.session.signUpSuccess` — flag to show success message after signup
-
-**Key operations**:
-- `bcrypt.compare(password, hash)` — verify login
-- `bcrypt.hash(password, 12)` — hash password before saving
-- `req.session.destroy()` + `res.clearCookie("connect.sid")` — logout
-
----
-
-### `controllers/adminController.js`
-**Pagination logic** (in `getUsers`):
-```js
-const page  = parseInt(req.query.page) || 1;
-const limit = parseInt(req.query.limit) || 7;
-const skip  = (page - 1) * limit;              // documents to skip
-const totalPages = Math.ceil(totalUsers / limit);
-```
-**Index numbering**: `u.index = skip + i + 1` so page 2 starts at row 8 (not 1).
-
-**Optional password update** (in `postEditUser`):
-```js
-if (password && password.trim() !== "") {
-  updatedData.password = await bcrypt.hash(password, 12);
-}
-```
-Only hashes a new password if the admin actually typed one.
-
----
-
-## 6. Complete Request-Response Flow
-
-### User Login Flow
-```
-Browser → POST /login {email, password}
-  → app.js middleware stack runs (session, nocache, cache headers)
-  → userRoute.js: matches POST /login → userController.postLogin
-  → userService.findUserByEmail(email) → MongoDB query → User doc returned
-  → bcrypt.compare(password, user.password) → true/false
-  → if true: req.session.userLoggedIn = user._id
-  → res.redirect("/user/userDashboard")
-  → userAuth runs → verifies session → next()
-  → userController.getDashboard → userService.findUserById()
-  → res.render("user/home", { user })
-  → Browser receives HTML dashboard page
-```
-
-### Admin Delete User Flow
-```
-Browser → GET /admin/deleteUser/:id
-  → app.js: request hits adminRoute (mounted at /admin)
-  → adminRoute: matches GET /deleteUser/:id → adminAuth runs first
-  → adminAuth: checks req.session.adminLoggedIn → Admin.findById() → valid → next()
-  → adminController.deleteUser(req, res)
-  → adminService.deleteUser(req.params.id) → User.findByIdAndDelete(id)
-  → req.session.success = "User deleted successfully"
-  → res.redirect("/admin/adminUsers")
-  → Flash middleware: res.locals.success = session.success → delete from session
-  → manageUsers.hbs renders → {{#if success}} shows green alert
-```
-
----
-
-## 7. Session & Authentication Flow
-
-### How sessions work
-
-```
-1. Login success     → req.session.userLoggedIn = user._id
-                       express-session stores this in server memory
-                       sends Set-Cookie: connect.sid=xxxxx to browser
-
-2. Next request      → browser sends Cookie: connect.sid=xxxxx
-                       express-session reads it → restores req.session
-                       req.session.userLoggedIn is now available
-
-3. userAuth checks   → req.session.userLoggedIn exists? → query DB
-                       user doc exists in DB? → next() → Controller
-
-4. Logout            → req.session.destroy() removes server-side session
-                       res.clearCookie("connect.sid") removes browser cookie
-                       Browser has no cookie → next request has no session
-```
-
-### Back-button prevention
-
-Two mechanisms work together:
-1. **Server-side headers**: `Cache-Control: no-store`, `Pragma: no-cache` (via `nocache()` and custom middleware) — tells the browser not to cache
-2. **Client-side script** in each `.hbs`: `pageshow` event with `event.persisted === true` detects bfcache → forces `window.location.reload()` → server re-validates session → redirects to login
-
----
-
-## 8. Key Concepts Explained
-
-### bcrypt
-- One-way password hashing (cannot be reversed)
-- `bcrypt.hash(password, 12)` — 12 salt rounds: more = slower computation = harder to brute-force
-- `bcrypt.compare(plain, hash)` — returns `true` if they match
-- **Rule**: NEVER store plain-text passwords
-
-### Mongoose Schema vs Model
-- **Schema** = blueprint (field names, types, validation rules)
-- **Model** = class generated from the schema; provides `find()`, `findById()`, `create()`, etc.
-- `mongoose.model("User", userSchema)` → collection name becomes `"users"` (auto-pluralised)
-
-### Sessions vs Cookies
-- **Cookie** (`connect.sid`) — stored in browser, contains only a session ID (not sensitive data)
-- **Session** — stored on the SERVER, holds actual data (user ID, flags)
-- This is secure because the user can only see the session ID in their cookie, not the data
-
-### Flash Messages
-- Pattern for sending a one-time message through a redirect
-- Set: `req.session.success = "User added"` → before `res.redirect()`
-- Read and clear: `res.locals.success = req.session.success; delete req.session.success;` (in `app.js` middleware)
-- Display: `{{#if success}}<div class="alert alert-success">{{success}}</div>{{/if}}` in `.hbs`
-
-### Pagination
-| Variable | Formula | Example (page 2, limit 7) |
-|---|---|---|
-| `skip` | `(page - 1) * limit` | `(2-1) * 7 = 7` |
-| `totalPages` | `Math.ceil(total / limit)` | `Math.ceil(15/7) = 3` |
-| `previousPage` | `page > 1 ? page - 1 : null` | `1` |
-| `nextPage` | `page < totalPages ? page + 1 : null` | `3` |
-
-### URL Parameters
-- `/admin/editUser/:id` — `:id` is a named placeholder
-- `req.params.id` contains the actual value from the URL
-- Example: `/admin/editUser/64b1a` → `req.params.id === "64b1a"`
-
-### Handlebars Helpers
-| Syntax | What it does |
+| Feature | How It Works |
 |---|---|
-| `{{variable}}` | Output a value |
-| `{{#if cond}}...{{/if}}` | Render if condition is truthy |
-| `{{#unless cond}}...{{/unless}}` | Render if condition is falsy |
-| `{{#each arr}}...{{/each}}` | Loop; `this` = current item |
-| `{{!-- comment --}}` | Template comment (not sent to browser) |
-
-### Service Pattern
-Without a Service layer: Controller → Model (tightly coupled, hard to test)
-With a Service layer: Controller → Service → Model (loosely coupled, each part testable alone)
+| Password Hashing | `bcrypt.hash()` with 12 salt rounds before saving |
+| Session-Based Auth | `express-session` stores login state on server |
+| Route Guards | `userAuth` and `adminAuth` middleware block unauthorized access |
+| Cache Prevention | `nocache()` + manual headers prevent browser back-button bypass |
+| Input Validation | Backend regex checks on name, email, and password before DB access |
+| Strong Password Rule | Min 8 chars, must contain uppercase, lowercase, and a number |
 
 ---
 
-*Architecture: MVC + Service Layer | Stack: Node.js · Express · MongoDB · Handlebars · Bootstrap 5*
+## 📦 npm Packages Used
+
+| Package | Purpose |
+|---|---|
+| `express` | Web framework — handles routes and HTTP |
+| `mongoose` | MongoDB ODM — defines schemas and queries |
+| `hbs` | Handlebars view engine for HTML templates |
+| `express-session` | Server-side session management |
+| `bcrypt` | Secure password hashing and comparison |
+| `dotenv` | Loads environment variables from `.env` file |
+| `nocache` | Disables browser caching for all responses |
+| `nodemon` | Auto-restarts server on file changes (dev tool) |
