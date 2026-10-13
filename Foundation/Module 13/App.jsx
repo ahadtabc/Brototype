@@ -1,56 +1,74 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-function App() {
+function Todo() {
+  // Load saved tasks and add IDs to older tasks if needed
   const [tasks, setTasks] = useState(() => {
     const savedTask = localStorage.getItem("tasks");
-    return savedTask ? JSON.parse(savedTask) : [];
+
+    if (!savedTask) {
+      return [];
+    }
+
+    const parsedTasks = JSON.parse(savedTask);
+
+    return parsedTasks.map((task) => ({
+      ...task,
+      id: task.id || crypto.randomUUID(),
+    }));
   });
 
   const [newTasks, setNewTasks] = useState("");
   const [deadline, setDeadline] = useState("");
-  const [editIndex, setEditIndex] = useState(null);
+  const [editId, setEditId] = useState(null);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
-  // Stores the tasks that already showed an overdue notification
+  // Store IDs of tasks that already triggered notifications
   const notifiedTasks = useRef(new Set());
 
-  // const transactionCount = tasks.length;
+  // Store the toast timeout ID
+  const toastTimer = useRef(null);
 
-  // Save tasks to localStorage
+  // Display a toast for 3 seconds
+  function showToast(message) {
+    setToast(message);
+
+    if (toastTimer.current) {
+      clearTimeout(toastTimer.current);
+    }
+
+    toastTimer.current = setTimeout(() => {
+      setToast("");
+      toastTimer.current = null;
+    }, 3000);
+  }
+
+  // Save tasks to localStorage whenever tasks change
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
-  // Check for overdue tasks
+  // Check for overdue tasks immediately and every 30 seconds
   useEffect(() => {
-    const checkOverdueTasks = () => {
+    function checkOverdueTasks() {
       const currentTime = new Date();
 
-      tasks.forEach((task, index) => {
+      tasks.forEach((task) => {
         if (
           task.deadline &&
           !task.completed &&
           new Date(task.deadline) <= currentTime &&
-          !notifiedTasks.current.has(index)
+          !notifiedTasks.current.has(task.id)
         ) {
-          setToast(`Task "${task.text}" is overdue!`);
-
-          notifiedTasks.current.add(index);
-
-          // Hide toast after 3 seconds
-          setTimeout(() => {
-            setToast("");
-          }, 3000);
+          notifiedTasks.current.add(task.id);
+          showToast(`Task "${task.text}" is overdue!`);
         }
       });
-    };
+    }
 
-    // Check immediately
     checkOverdueTasks();
 
-    // Check every 30 seconds
     const timer = setInterval(checkOverdueTasks, 30000);
 
     return () => {
@@ -58,14 +76,27 @@ function App() {
     };
   }, [tasks]);
 
+  // Clean up the toast timeout when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) {
+        clearTimeout(toastTimer.current);
+      }
+    };
+  }, []);
+
+  // Handle task input changes
   function InputChange(event) {
     setNewTasks(event.target.value);
     setError("");
   }
 
+  // Add a new task
   function addTask() {
-    if (newTasks.trim() === "") {
-      setError("Spaces not allowed");
+    const trimmedTask = newTasks.trim();
+
+    if (trimmedTask === "") {
+      setError("Empty spaces are not allowed");
       return;
     }
 
@@ -74,19 +105,21 @@ function App() {
       return;
     }
 
-    const alreadyExists = tasks.find(
-      (task) => task.text.toLowerCase() === newTasks.trim().toLowerCase(),
+    const alreadyExists = tasks.some(
+      (task) =>
+        task.text.toLowerCase() === trimmedTask.toLowerCase()
     );
 
-    if (alreadyExists !== undefined) {
-      setError("This Task Already Exists");
+    if (alreadyExists) {
+      setError("This task already exists");
       return;
     }
 
-    setTasks((t) => [
-      ...t,
+    setTasks((currentTasks) => [
+      ...currentTasks,
       {
-        text: newTasks.trim(),
+        id: crypto.randomUUID(),
+        text: trimmedTask,
         completed: false,
         deadline: deadline,
       },
@@ -97,25 +130,20 @@ function App() {
     setError("");
   }
 
-  function editTask(index) {
-    setNewTasks(tasks[index].text);
-    setDeadline(tasks[index].deadline || "");
-    setEditIndex(index);
+  // Load a task into the input fields for editing
+  function editTask(task) {
+    setNewTasks(task.text);
+    setDeadline(task.deadline || "");
+    setEditId(task.id);
     setError("");
   }
 
-  function deleteTask(index) {
-    const updatedTask = tasks.filter((__, i) => i !== index);
-
-    setTasks(updatedTask);
-
-    // Remove notification tracking
-    notifiedTasks.current.delete(index);
-  }
-
+  // Update an existing task using its unique ID
   function updatedTask() {
-    if (newTasks.trim() === "") {
-      setError("Spaces are not Allowed");
+    const trimmedTask = newTasks.trim();
+
+    if (trimmedTask === "") {
+      setError("Empty spaces are not allowed");
       return;
     }
 
@@ -124,58 +152,91 @@ function App() {
       return;
     }
 
-    const alreadyExists = tasks.find(
-      (task, index) =>
-        index !== editIndex &&
-        task.text.toLowerCase() === newTasks.trim().toLowerCase(),
+    const alreadyExists = tasks.some(
+      (task) =>
+        task.id !== editId &&
+        task.text.toLowerCase() === trimmedTask.toLowerCase()
     );
 
-    if (alreadyExists !== undefined) {
-      setError("This Task Already Exists");
+    if (alreadyExists) {
+      setError("This task already exists");
       return;
     }
 
-    const updatedTasks = [...tasks];
-
-    updatedTasks[editIndex] = {
-      ...updatedTasks[editIndex],
-      text: newTasks.trim(),
-      deadline: deadline,
-    };
+    const updatedTasks = tasks.map((task) =>
+      task.id === editId
+        ? {
+            ...task,
+            text: trimmedTask,
+            deadline: deadline,
+          }
+        : task
+    );
 
     setTasks(updatedTasks);
 
-    // Allow notification again if deadline was changed
-    notifiedTasks.current.delete(editIndex);
+    // Allow notification again if the deadline was changed
+    notifiedTasks.current.delete(editId);
 
     setNewTasks("");
     setDeadline("");
     setError("");
-    setEditIndex(null);
+    setEditId(null);
   }
 
-  function toggleTasks(index) {
-    const updatedTasks = [...tasks];
+  // Delete a task using its unique ID
+  function deleteTask(taskId) {
+    setTasks((currentTasks) =>
+      currentTasks.filter((task) => task.id !== taskId)
+    );
 
-    updatedTasks[index] = {
-      ...updatedTasks[index],
-      completed: !updatedTasks[index].completed,
-    };
+    notifiedTasks.current.delete(taskId);
 
-    setTasks(updatedTasks);
-
-    // If task is completed, remove notification tracking
-    if (!updatedTasks[index].completed) {
-      notifiedTasks.current.delete(index);
+    // Cancel editing if the edited task is deleted
+    if (editId === taskId) {
+      setEditId(null);
+      setNewTasks("");
+      setDeadline("");
+      setError("");
     }
+  }
+
+  // Mark a task as completed or incomplete
+  function toggleTasks(taskId) {
+    const selectedTask = tasks.find(
+      (task) => task.id === taskId
+    );
+
+    // Allow notification again when an overdue task
+    // is changed from completed to incomplete
+    if (selectedTask?.completed) {
+      notifiedTasks.current.delete(taskId);
+    }
+
+    setTasks((currentTasks) =>
+      currentTasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              completed: !task.completed,
+            }
+          : task
+      )
+    );
+  }
+
+  // Cancel the current editing operation
+  function cancelEdit() {
+    setEditId(null);
+    setNewTasks("");
+    setDeadline("");
+    setError("");
   }
 
   return (
     <div className="toDoList">
       <h1>To Do List App</h1>
 
-     {/* <h2>Transactions :{transactionCount}</h2>   */}
- 
       <div className="input-section">
         <input
           type="text"
@@ -187,54 +248,93 @@ function App() {
         <input
           type="datetime-local"
           value={deadline}
-          onChange={(event) => setDeadline(event.target.value)}
+          onChange={(event) => {
+            setDeadline(event.target.value);
+            setError("");
+          }}
         />
 
-        {editIndex === null ? (
-          <button className="add-button" onClick={addTask}>
+        {editId === null ? (
+          <button
+            className="add-button"
+            onClick={addTask}
+          >
             Add
           </button>
         ) : (
-          <button className="add-button" onClick={updatedTask}>
-            Update
-          </button>
+          <>
+            <button
+              className="add-button"
+              onClick={updatedTask}
+            >
+              Update
+            </button>
+
+            <button
+              type="button"
+              onClick={cancelEdit}
+            >
+              Cancel
+            </button>
+          </>
         )}
       </div>
 
-      {error && <p className="error-message">{error}</p>}
+      {error && (
+        <p className="error-message">{error}</p>
+      )}
 
       <ol>
-        {tasks.map((task, index) => {
+        {tasks.map((task) => {
           const isOverdue =
             task.deadline &&
             new Date(task.deadline) < new Date() &&
             !task.completed;
 
           return (
-            <li key={index} className={isOverdue ? "overdue-task" : ""}>
+            <li
+              key={task.id}
+              className={isOverdue ? "overdue-task" : ""}
+            >
               <input
                 type="checkbox"
                 checked={task.completed}
-                onChange={() => toggleTasks(index)}
+                onChange={() => toggleTasks(task.id)}
               />
 
               <div className="task-content">
-                <span className={task.completed ? "text completed" : "text"}>
+                <span
+                  className={
+                    task.completed
+                      ? "text completed"
+                      : "text"
+                  }
+                >
                   {task.text}
                 </span>
 
-                <small className={isOverdue ? "deadline overdue" : "deadline"}>
-                  Deadline: {new Date(task.deadline).toLocaleString()}
+                <small
+                  className={
+                    isOverdue
+                      ? "deadline overdue"
+                      : "deadline"
+                  }
+                >
+                  Deadline:{" "}
+                  {new Date(task.deadline).toLocaleString()}
                 </small>
               </div>
 
-              <button className="edit-button" onClick={() => editTask(index)}>
+              <button
+                className="edit-button"
+                onClick={() => editTask(task)}
+              >
                 Edit
               </button>
 
               <button
                 className="delete-button"
-                onClick={() => deleteTask(index)}
+                onClick={() => deleteTask(task.id)}
               >
                 Delete
               </button>
@@ -243,11 +343,14 @@ function App() {
         })}
       </ol>
 
-      {/* Toast Notification */}
-
-      {toast && <div className="toast">{toast}</div>}
+      {/* Toast notification */}
+      {toast && (
+        <div className="toast">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
 
-export default App;
+export default Todo;
